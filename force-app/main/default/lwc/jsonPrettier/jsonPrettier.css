@@ -1,0 +1,35 @@
+.pretty-container {
+    margin: 0 -20px 30px 0;
+    font-family: "IBMPlexMono", "Courier New", monospace;
+}
+
+.pretty-container-arrow {
+    margin: 0 -20px 30px 20px;
+    font-family: "IBMPlexMono", "Courier New", monospace;
+}
+
+.new-line {
+    display: flex;
+    margin-left: 20px;
+    margin-bottom: -15px;
+}
+
+.new-line-arrow {
+    margin: 20px 0 -20px 0px;
+}
+
+.key {
+    color: #a31515;
+}
+
+.number {
+    color: #098658;
+}
+
+.string {
+    color: #ff8b55;
+}
+
+.boolean {
+    color: blue;
+}

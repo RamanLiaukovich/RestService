@@ -1,0 +1,196 @@
+<template>
+    <div class="content-wrapper">
+        <div class="input-container">
+            <lightning-combobox
+                class="method-input"
+                name="method"
+                value={selectedMethod}
+                options={methodOptions}
+                onchange={onMethodChange}
+            ></lightning-combobox>
+
+            <lightning-input 
+                class="url-input"
+                type="url"
+                name="input3"
+                data-id="url-input"
+                placeholder="Enter valid URL here..." 
+            ></lightning-input>
+
+            <lightning-button 
+                class="send-button"
+                variant="brand" 
+                label="Send" 
+                title="Send" 
+                onclick={sendRequest}
+            ></lightning-button>
+        </div>
+
+        <div class="request-container">
+            <lightning-tabset variant="scoped">
+                <lightning-tab label={labels.requestHeaders}>
+                    <div class="headers-table">
+                        <div class="table-header">
+                            <div class="checkbox-cell"></div>
+                            <div class="key-cell">{labels.key}</div>
+                            <div class="value-cell">{labels.value}</div>
+                        </div>
+
+                        <template for:each={headersData} for:item="header" for:index="index">
+                            <div class="table-row" key={header.key}>
+                                <div class="checkbox-cell">
+                                    <lightning-input type="checkbox-button" name={index} checked onchange={checkboxChange}></lightning-input>
+                                </div>
+
+                                <div class="key-cell">
+                                    <lightning-input type="text" value={header.key} name={index} onblur={changeKey}></lightning-input>
+                                </div>
+
+                                <div class="value-cell">
+                                    <lightning-input type="text" value={header.value} name={index} onblur={changeValue}></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="table-row last-row">
+                            <div class="checkbox-cell">
+                                <lightning-button-icon 
+                                    icon-name="utility:add"
+                                    alternative-text="Add header" 
+                                    title="Add header" 
+                                    onclick={addHeaderAction}
+                                ></lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-tab>
+                
+                <lightning-tab label={labels.requestBody}>
+                    <lightning-radio-group 
+                        name="radioGroup"
+                        label="Type"
+                        options={bodyTypeOptions}
+                        value={chosenBodyType}
+                        type="button"
+                        class="body-type-radio"
+                        onchange={bodyTypeChange}
+                    ></lightning-radio-group>
+
+                    <div class="body-table request-body body-form-data">
+                        <div class="table-header">
+                            <div class="checkbox-cell"></div>
+                            <div class="key-cell">{labels.key}</div>
+                            <div class="value-cell">{labels.value}</div>
+                        </div>
+
+                        <template for:each={bodyData} for:item="bodyItem" for:index="index">
+                            <div class="table-row" key={bodyItem.key}>
+                                <div class="checkbox-cell">
+                                    <lightning-input type="checkbox-button" name={index} checked onchange={bodyCheckboxChange}></lightning-input>
+                                </div>
+
+                                <div class="key-cell">
+                                    <lightning-input type="text" data-id="form-key" value={bodyItem.key} name={index} onblur={changeBodyKey}></lightning-input>
+                                </div>
+
+                                <div class="value-cell">
+                                    <lightning-input type="text" data-id="form-value" value={bodyItem.value} name={index} onblur={changeBodyValue}></lightning-input>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="table-row last-row">
+                            <div class="checkbox-cell">
+                                <lightning-button-icon 
+                                    icon-name="utility:add"
+                                    alternative-text="Add header" 
+                                    title="Add header" 
+                                    onclick={addBodyPairAction}
+                                ></lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <lightning-textarea class="request-body body-raw hidden" name="body-input" placeholder={labels.rawInputLabel}></lightning-textarea>
+
+                    <lightning-file-upload
+                        class="request-body body-binary hidden"
+                        label="Attach file"
+                        name="fileUploader"
+                        onuploadfinished={handleUploadFinished}
+                        multiple
+                    ></lightning-file-upload>
+                </lightning-tab>
+            </lightning-tabset>
+        </div>
+
+        <div class="response-container">
+            <div class="response-container_header">
+                <span class="response-title">{labels.response}</span>
+
+                <template if:true={isGetResponse}>
+                    <div class="status-bar">
+                        <span>{labels.status}: </span>
+                        <span>{response.status} {response.statusText}</span>
+                    </div>
+                </template>
+            </div>
+
+            <template if:true={isGetResponse}>
+                <template if:false={isDataLoading}>
+                    <lightning-tabset variant="scoped">
+                        <lightning-tab label={labels.body}>
+                            <lightning-tabset variant="scoped">
+                                <lightning-tab label={labels.pretty}>
+                                    <template if:true={isSuccessResponse}>
+                                        <c-json-prettier json={jsonResponse}></c-json-prettier>
+                                    </template>
+
+                                    <template if:false={isSuccessResponse}>
+                                        <span>Response is "{response.statusText}"</span>
+                                        <span>{textResponse}</span>
+                                    </template>
+                                </lightning-tab>
+
+                                <lightning-tab label={labels.raw}>
+                                    {textResponse}
+                                </lightning-tab>
+                            </lightning-tabset>
+                        </lightning-tab>
+
+                        <lightning-tab label={labels.headers}>
+                            <template for:each={response.headerArr} for:item="header">
+                                <div class="header-row" key={header.key}>
+                                    {header.key} : {header.value}
+                                </div>
+                            </template>
+                        </lightning-tab>
+                    </lightning-tabset>
+                </template>
+            </template>
+
+            <template if:true={isDataLoading}>
+                <div class="spinner">
+                    <div class="spinner-container">
+                        <div class="divider" aria-hidden="true"></div>
+                        <p class="loading-text" aria-label="Loading">
+                            <span class="letter" aria-hidden="true">L</span>
+                            <span class="letter" aria-hidden="true">o</span>
+                            <span class="letter" aria-hidden="true">a</span>
+                            <span class="letter" aria-hidden="true">d</span>
+                            <span class="letter" aria-hidden="true">i</span>
+                            <span class="letter" aria-hidden="true">n</span>
+                            <span class="letter" aria-hidden="true">g</span>
+                        </p>
+                    </div>
+                </div>
+            </template>
+
+            <template if:false={isGetResponse}>
+                <template if:false={isDataLoading}>
+                    <c-empty-block-image output-text={labels.hitSend}></c-empty-block-image>
+                </template>
+            </template>
+        </div>
+    </div>
+</template>

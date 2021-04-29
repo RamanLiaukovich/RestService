@@ -1,0 +1,7 @@
+<template>
+    <template if:false={isArray}>{</template>
+    <template if:true={isArray}>[</template>
+    <div class={containerClass} lwc:dom="manual" data-id="container"></div>
+    <template if:false={isArray}>}</template>
+    <template if:true={isArray}>]</template>
+</template>
